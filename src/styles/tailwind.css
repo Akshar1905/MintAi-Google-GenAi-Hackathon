@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core Colors */
+    --color-background: #FFFFFF; /* white */
+    --color-foreground: #2D3748; /* gray-800 */
+    --color-border: rgba(167, 235, 214, 0.3); /* mint-200 with opacity */
+    --color-input: #F6FFFB; /* mint-50 */
+    --color-ring: #A7EBD6; /* mint-300 */
+    
+    /* Card Colors */
+    --color-card: #FFFFFF; /* white */
+    --color-card-foreground: #2D3748; /* gray-800 */
+    --color-popover: #FFFFFF; /* white */
+    --color-popover-foreground: #2D3748; /* gray-800 */
+    
+    /* Muted Colors */
+    --color-muted: #F6FFFB; /* mint-50 */
+    --color-muted-foreground: #718096; /* gray-500 */
+    
+    /* Primary Colors */
+    --color-primary: #A7EBD6; /* mint-300 */
+    --color-primary-foreground: #2D3748; /* gray-800 */
+    
+    /* Secondary Colors */
+    --color-secondary: #7DE3C2; /* mint-400 */
+    --color-secondary-foreground: #2D3748; /* gray-800 */
+    
+    /* Accent Colors */
+    --color-accent: #5DDBB8; /* mint-500 */
+    --color-accent-foreground: #FFFFFF; /* white */
+    
+    /* State Colors */
+    --color-destructive: #FC8181; /* red-300 */
+    --color-destructive-foreground: #FFFFFF; /* white */
+    --color-success: #68D391; /* green-300 */
+    --color-success-foreground: #2D3748; /* gray-800 */
+    --color-warning: #F6E05E; /* yellow-300 */
+    --color-warning-foreground: #2D3748; /* gray-800 */
+    --color-error: #FC8181; /* red-300 */
+    --color-error-foreground: #FFFFFF; /* white */
+    
+    /* Surface Colors */
+    --color-surface: #F6FFFB; /* mint-50 */
+    --color-text-primary: #2D3748; /* gray-800 */
+    --color-text-secondary: #718096; /* gray-500 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .font-caption {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+  
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  /* Neumorphic Shadows */
+  .shadow-neumorphic-sm {
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.03), -4px -4px 12px rgba(255,255,255,0.8);
+  }
+  
+  .shadow-neumorphic {
+    box-shadow: 6px 6px 18px rgba(0,0,0,0.05), -6px -6px 18px rgba(255,255,255,0.9);
+  }
+  
+  .shadow-neumorphic-md {
+    box-shadow: 8px 8px 20px rgba(0,0,0,0.05), -8px -8px 20px rgba(255,255,255,0.9);
+  }
+  
+  .shadow-neumorphic-lg {
+    box-shadow: 12px 12px 30px rgba(0,0,0,0.08), -12px -12px 30px rgba(255,255,255,0.95);
+  }
+  
+  /* Breathing Animation */
+  .animate-breathe {
+    animation: breathe 4s ease-in-out infinite;
+  }
+  
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+  
+  /* Spring Animation */
+  .transition-spring {
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  /* Micro-interaction Scale */
+  .scale-micro {
+    transform: scale(0.95);
+  }
+  
+  .scale-micro-up {
+    transform: scale(1.05);
+  }
+  
+  /* Safe Area Padding */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-breathe {
+    animation: none;
+  }
+  
+  .transition-spring {
+    transition: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
