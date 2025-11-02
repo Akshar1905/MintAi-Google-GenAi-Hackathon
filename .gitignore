@@ -11,3 +11,4 @@ vite.config.*s.*
 .env.*.local
 .docker.env
 docker-compose.override.yml
+".env" 
