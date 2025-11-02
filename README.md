@@ -621,7 +621,6 @@ This project is part of the Google GenAI Hackathon submission.
 
 ## 🙏 Acknowledgments
 
-- Built with [Rocket.new](https://rocket.new)
 - Powered by **React** and **Vite**
 - Styled with **Tailwind CSS**
 - AI capabilities by **Google Gemini**
