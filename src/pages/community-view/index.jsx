@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import TopNavigation from '../../components/ui/TopNavigation';
-import BottomTabNavigation from '../../components/ui/BottomTabNavigation';
 import ChatTransition from '../../components/ui/ChatTransition';
 import CommunityHeader from './components/CommunityHeader';
 import CommunityStatistics from './components/CommunityStatistics';
@@ -41,11 +39,6 @@ const CommunityView = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-secondary/10">
-      {/* Top Navigation */}
-      <TopNavigation
-        currentUser={currentUser}
-        onNavigate={handleNavigation}
-      />
       {/* Main Content */}
       <main className="flex-1 px-4 py-6 pb-20 md:pb-6">
         <PageFadeIn>
@@ -106,8 +99,6 @@ const CommunityView = () => {
         </div>
         </PageFadeIn>
       </main>
-      {/* Bottom Navigation for Mobile */}
-      <BottomTabNavigation onNavigate={handleNavigation} />
       {/* Chat Widget */}
       <ChatTransition onNavigate={handleNavigation} onClose={() => {}} />
     </div>

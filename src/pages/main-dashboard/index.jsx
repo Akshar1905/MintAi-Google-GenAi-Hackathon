@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import TopNavigation from '../../components/ui/TopNavigation';
-import BottomTabNavigation from '../../components/ui/BottomTabNavigation';
 import ChatTransition from '../../components/ui/ChatTransition';
-import QuickChatWidget from '../../components/ui/QuickChatWidget';
 import WelcomeHeader from './components/WelcomeHeader';
 import RotatingWidget from './components/RotatingWidget';
 import QuickActionCards from './components/QuickActionCards';
 import WellnessStats from './components/WellnessStats';
+import MintChatWidget from '../../components/widgets/MintChatWidget';
+import Icon from '../../components/AppIcon';
 
 import MoodTrackingSection from '../mood-tracking';
 import DailyTasksSection from '../daily-tasks';
@@ -21,12 +20,59 @@ import InsightsSection from '../insights-view/InsightsSection';
 import QuickActionsSection from '../quick-actions/QuickActionsSection';
 
 const MainDashboard = () => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   // Unified chat state for Gemini and widget
   const [chatMessages, setChatMessages] = useState(() => {
     try { return JSON.parse(localStorage.getItem('mintai.chat.widget.messages')||'[]'); } catch { return []; }
   });
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  
+  // Handle Google Photos OAuth callback
+  useEffect(() => {
+    const googlePhotosConnected = searchParams.get('googlePhotosConnected');
+    const googlePhotosError = searchParams.get('googlePhotosError');
+    const errorMessage = searchParams.get('message');
+    
+    if (googlePhotosConnected === 'true') {
+      // Show success message
+      console.log('[Main Dashboard] Google Photos connected successfully!');
+      // Clear the query param
+      setSearchParams({}, { replace: true });
+      // Small delay before reload to show success
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      return;
+    }
+    
+    if (googlePhotosError) {
+      // Show error message with details
+      console.error('[Main Dashboard] Google Photos connection error:', googlePhotosError);
+      if (errorMessage) {
+        console.error('[Main Dashboard] Error details:', decodeURIComponent(errorMessage));
+      }
+      
+      // Common error messages
+      const errorMessages = {
+        'state_mismatch': 'OAuth session expired or invalid. Please try connecting again.',
+        'access_denied': 'Access was denied. Please grant permission to continue.',
+        'no_code': 'Authorization failed. Please try again.',
+        'exchange_failed': 'Failed to complete authentication. Please try again.',
+        'missing_scope': 'Token missing required scope. Please reconnect Google Photos and grant "See and download your photos" permission.',
+      };
+      
+      const userMessage = errorMessages[googlePhotosError] || decodeURIComponent(errorMessage) || 'An error occurred. Please try again.';
+      console.warn('[Main Dashboard] User-friendly error:', userMessage);
+      
+      // Clear the query param after a delay
+      setTimeout(() => {
+        setSearchParams({}, { replace: true });
+      }, 3000);
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (chatMessages.length === 0) {
@@ -65,7 +111,7 @@ const MainDashboard = () => {
     if (/task|todo/i.test(text)) return 'You can create a daily task in the Tasks page.';
     return "Here's a helpful tip: small consistent actions lead to big changes.";
   }
-  const navigate = useNavigate();
+  
   const [isWidgetPaused, setIsWidgetPaused] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -137,31 +183,35 @@ const MainDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      <TopNavigation currentUser={currentUser} onNavigate={handleNavigation} />
       <main className="flex-1 px-4 py-8 pb-24 md:pb-8">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Widget at the top */}
           <div className="w-full flex justify-center">
-            <RotatingWidget />
+            <RotatingWidget chatHistory={chatMessages} />
           </div>
-          {/* Chat Feature (Gemini) */}
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <h2 className="text-xl font-heading font-semibold text-foreground mb-4">MintChat (Gemini)</h2>
-            <ChatTransition
-              onNavigate={handleNavigation}
-              onClose={() => {}}
-              messages={chatMessages}
-              sendMessage={sendChatMessage}
-              loading={chatLoading}
-            />
+          {/* MintChat Feature (Gemini) */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1 }}
+            className="w-full"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-heading font-semibold text-foreground">MintChat (Gemini)</h2>
+              <button
+                onClick={() => navigate('/mint-chat-full-screen')}
+                className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors"
+              >
+                Open Full Chat
+                <Icon name="ExternalLink" size={14} />
+              </button>
+            </div>
+            <div className="bg-card rounded-xl shadow-neumorphic-md border border-border overflow-hidden">
+              <MintChatWidget 
+                onOpenFull={() => navigate('/mint-chat-full-screen')}
+              />
+            </div>
           </motion.div>
-      {/* Unified QuickChatWidget (floating) */}
-      <QuickChatWidget
-        messages={chatMessages}
-        sendMessage={sendChatMessage}
-        loading={chatLoading}
-        onOpenFull={() => handleNavigation('/mint-chat-full-screen')}
-      />
           {/* Mood Tracking */}
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <h2 className="text-xl font-heading font-semibold text-foreground mb-4">Mood Tracking</h2>
@@ -209,7 +259,6 @@ const MainDashboard = () => {
           </motion.div>
         </div>
       </main>
-      <BottomTabNavigation onNavigate={handleNavigation} />
     </div>
   );
 };

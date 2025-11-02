@@ -1,71 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 import AuthBackground from './components/AuthBackground';
 import WelcomeHeader from './components/WelcomeHeader';
-import AuthForm from './components/AuthForm';
 import LoadingOverlay from './components/LoadingOverlay';
 
 const Authentication = () => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
+  const { signInWithGoogle } = useAuth();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  // Check if user is already authenticated
-  useEffect(() => {
-    const savedUser = localStorage.getItem('mintai_user');
-    if (savedUser) {
-      navigate('/main-dashboard', { replace: true });
-    }
-  }, [navigate]);
-
-  const handleAuthenticate = async (userData) => {
+  const handleGoogleSignIn = async () => {
     setIsAuthenticating(true);
-    
     try {
-      // Save user data to localStorage
-      localStorage.setItem('mintai_user', JSON.stringify(userData));
-      localStorage.setItem('mintai_auth_token', 'mock_token_' + Date.now());
-      localStorage.setItem('mintai_login_timestamp', new Date()?.toISOString());
-
-      // Simulate authentication delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Navigate to dashboard
+      await signInWithGoogle();
       navigate('/main-dashboard', { replace: true });
     } catch (error) {
       console.error('Authentication error:', error);
+    } finally {
       setIsAuthenticating(false);
     }
-  };
-
-  const handleToggleMode = () => {
-    setIsLogin(!isLogin);
   };
 
   return (
     <>
       <AuthBackground>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={isLogin ? 'login' : 'register'}
-            initial={{ opacity: 0, x: isLogin ? -20 : 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: isLogin ? 20 : -20 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <WelcomeHeader />
+          <button
+            onClick={handleGoogleSignIn}
+            className="w-full bg-white text-gray-700 py-3 px-6 rounded-lg flex items-center justify-center gap-3 shadow-md hover:shadow-lg transition-shadow"
           >
-            <WelcomeHeader isLogin={isLogin} />
-            <AuthForm
-              isLogin={isLogin}
-              onAuthenticate={handleAuthenticate}
-              onToggleMode={handleToggleMode}
-            />
-          </motion.div>
-        </AnimatePresence>
+            <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
+            Sign in with Google
+          </button>
+        </motion.div>
       </AuthBackground>
       <LoadingOverlay
         isVisible={isAuthenticating}
-        message={isLogin ? "Signing you in..." : "Creating your account..."}
+        message="Signing in with Google..."
       />
     </>
   );

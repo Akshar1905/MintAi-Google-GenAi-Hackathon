@@ -10,22 +10,15 @@ const LogoutSection = ({ onLogout }) => {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    
-    // Mock logout delay
-    setTimeout(() => {
-      // Clear any stored user data
-      localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-      sessionStorage.clear();
-      
+    try {
       if (onLogout) {
-        onLogout();
+        await onLogout();
       }
-      
-      navigate('/authentication');
+    } finally {
+      navigate('/login', { replace: true });
       setIsLoggingOut(false);
       setShowConfirm(false);
-    }, 1000);
+    }
   };
 
   return (

@@ -37,20 +37,29 @@ const ProfileHeader = ({ user, onAvatarUpdate, onNameUpdate }) => {
     setIsEditingName(false);
   };
 
+  const createdAt = user?.createdAt ? new Date(user.createdAt?.seconds ? user.createdAt.seconds * 1000 : user.createdAt) : (user?.joinedDate ? new Date(user.joinedDate) : null);
+  const memberSinceStr = createdAt ? createdAt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—';
+  const userInitial = (user?.email || user?.displayName || user?.name || 'U')?.charAt(0)?.toUpperCase();
+  const hasPhoto = Boolean(user?.photoURL || user?.avatar);
+
   return (
     <div className="bg-card rounded-2xl p-8 shadow-neumorphic-md border border-border">
       <div className="flex flex-col items-center text-center">
         {/* Avatar Section */}
         <div className="relative mb-6">
           <div 
-            className="w-24 h-24 rounded-full overflow-hidden shadow-neumorphic-lg cursor-pointer group transition-spring hover:scale-105"
+            className="w-24 h-24 rounded-full overflow-hidden shadow-neumorphic-lg cursor-pointer group transition-spring hover:scale-105 flex items-center justify-center bg-gradient-to-br from-secondary to-accent"
             onClick={handleAvatarClick}
           >
-            <Image
-              src={user?.avatar || "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"}
-              alt={`${user?.name}'s profile picture`}
-              className="w-full h-full object-cover"
-            />
+            {hasPhoto ? (
+              <Image
+                src={user?.photoURL || user?.avatar}
+                alt={`${user?.name || user?.displayName}'s profile picture`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-white text-3xl font-heading">{userInitial}</span>
+            )}
             {isUploading && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <Icon name="Loader2" size={20} className="text-white animate-spin" />
@@ -70,7 +79,7 @@ const ProfileHeader = ({ user, onAvatarUpdate, onNameUpdate }) => {
             />
           </button>
         </div>
-
+        
         {/* Display Name Section */}
         <div className="w-full max-w-xs">
           {isEditingName ? (
@@ -123,10 +132,7 @@ const ProfileHeader = ({ user, onAvatarUpdate, onNameUpdate }) => {
           )}
           
           <p className="text-sm font-body text-muted-foreground mt-2">
-            Member since {new Date(user.joinedDate)?.toLocaleDateString('en-US', { 
-              month: 'long', 
-              year: 'numeric' 
-            })}
+            Member since {memberSinceStr}
           </p>
         </div>
 

@@ -3,7 +3,7 @@ import ChatHeader from './components/ChatHeader';
 import ChatContainer from './components/ChatContainer';
 import MessageInput from './components/MessageInput';
 import QuickReplyChips from './components/QuickReplyChips';
-import { generateGeminiResponse } from '../../utils/gemini';
+import { generateGeminiResponse, analyzeSentiment } from '../../utils/gemini';
 
 const MintChatFullScreen = () => {
   const [messages, setMessages] = useState([]);
@@ -119,7 +119,56 @@ const MintChatFullScreen = () => {
       setMessages(prev => prev?.map(msg => msg?.id === userMessage?.id ? { ...msg, status: 'delivered' } : msg));
       setMessages(prev => prev?.map(msg => msg?.id === userMessage?.id ? { ...msg, status: 'read' } : msg));
 
-      const apiText = await generateGeminiResponse(messageContent).catch(() => null);
+      // Analyze sentiment for more empathetic response
+      let sentimentAnalysis = null;
+      try {
+        sentimentAnalysis = await analyzeSentiment(messageContent);
+      } catch (err) {
+        console.warn('[MintChat] Sentiment analysis failed:', err);
+      }
+
+      // Build conversation history from recent messages (last 10 exchanges)
+      // Convert messages to Gemini format: {role: 'user'|'model', parts: [{text: string}]}
+      const recentMessages = messages.slice(-10); // Last 10 messages for context
+      const conversationHistory = recentMessages
+        .filter(msg => msg.content && msg.content.trim()) // Filter out empty messages
+        .map(msg => ({
+          role: msg.isUser ? 'user' : 'model',
+          parts: [{ text: msg.content }]
+        }));
+
+      // System instruction for wellness-focused AI companion
+      const systemInstruction = `You are MintChat, a compassionate and empathetic mental wellness companion. Your role is to:
+- Provide emotional support and understanding
+- Offer practical wellness strategies and coping techniques
+- Listen actively and validate feelings
+- Suggest appropriate self-care activities (breathing exercises, journaling, meditation, etc.)
+- Maintain a warm, non-judgmental, and encouraging tone
+- Remember context from previous messages in the conversation
+- Never provide medical advice or diagnose conditions
+- If someone expresses serious mental health concerns, gently suggest professional help
+
+Keep responses conversational, supportive, and typically 2-4 sentences unless the user asks for more detail. Focus on empowerment and positive coping strategies.`;
+
+      // Build enhanced prompt with emotion context
+      let enhancedPrompt = messageContent;
+      if (sentimentAnalysis) {
+        enhancedPrompt = `[User emotion: ${sentimentAnalysis.emotion}, mood: ${sentimentAnalysis.mood}]
+${messageContent}`;
+      }
+
+      let apiText = null;
+      try {
+        apiText = await generateGeminiResponse(enhancedPrompt, { 
+          model: 'gemini-1.5-flash',
+          conversationHistory: conversationHistory,
+          systemInstruction: systemInstruction,
+          temperature: 0.8, // Slightly higher for more empathetic responses
+          maxOutputTokens: 512
+        });
+      } catch (err) {
+        console.warn('[MintChat] Gemini call failed, using fallback:', err?.message || err);
+      }
       const fullText = apiText || getAIResponse(messageContent);
 
       // Streaming type effect

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import TopNavigation from '../../components/ui/TopNavigation';
-import BottomTabNavigation from '../../components/ui/BottomTabNavigation';
 import ChatTransition from '../../components/ui/ChatTransition';
 import WellnessHeader from './components/WellnessHeader';
 import WellnessStatistics from './components/WellnessStatistics';
@@ -39,11 +37,6 @@ const WellnessView = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-accent/10">
-      {/* Top Navigation */}
-      <TopNavigation
-        currentUser={currentUser}
-        onNavigate={handleNavigation}
-      />
       {/* Main Content */}
       <main className="flex-1 px-4 py-6 pb-20 md:pb-6">
         <div className="max-w-7xl mx-auto space-y-8">
@@ -87,8 +80,6 @@ const WellnessView = () => {
           </motion.div>
         </div>
       </main>
-      {/* Bottom Navigation for Mobile */}
-      <BottomTabNavigation onNavigate={handleNavigation} />
       {/* Chat Widget */}
       <ChatTransition onNavigate={handleNavigation} onClose={() => {}} />
     </div>

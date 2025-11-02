@@ -1,114 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase.js';
 import { useNavigate } from 'react-router-dom';
-import TopNavigation from '../../components/ui/TopNavigation';
-import BottomTabNavigation from '../../components/ui/BottomTabNavigation';
 import ChatTransition from '../../components/ui/ChatTransition';
 import ProfileHeader from './components/ProfileHeader';
 import PersonalInfoSection from './components/PersonalInfoSection';
 import WellnessPreferences from './components/WellnessPreferences';
 import PrivacyControls from './components/PrivacyControls';
 import LogoutSection from './components/LogoutSection';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase.js';
 
 const UserProfile = () => {
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null);
+  const { currentUser } = useAuth();
+  const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Mock user data
-  const mockUser = {
-    id: "user_001",
-    name: "Sarah Chen",
-    displayName: "Sarah Chen",
-    email: "sarah.chen@email.com",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    bio: "Wellness enthusiast on a journey to better mental health. Love music, nature, and mindful moments.",
-    location: "San Francisco, CA",
-    joinedDate: "2024-01-15T00:00:00Z",
-    stats: {
-      streakDays: 7,
-      totalSessions: 23,
-      savedQuotes: 12
-    },
-    preferences: {
-      dailyReminders: true,
-      moodTracking: true,
-      motivationalQuotes: true,
-      musicRecommendations: true,
-      chatNotifications: false,
-      weeklyReports: true,
-      reminderTime: "09:00",
-      shareProgress: false,
-      anonymousData: true
-    },
-    privacySettings: {
-      profileVisibility: "private",
-      dataSharing: false,
-      analyticsTracking: true,
-      marketingEmails: false,
-      researchParticipation: false,
-      locationTracking: false
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulate loading user data
-    const timer = setTimeout(() => {
-      setCurrentUser(mockUser);
+    const fetchUserData = async () => {
+      if (currentUser) {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          setUserData({ uid: currentUser.uid, email: currentUser.email, photoURL: currentUser.photoURL, displayName: currentUser.displayName, ...userDoc.data() });
+        } else {
+          setUserData({ uid: currentUser.uid, email: currentUser.email, photoURL: currentUser.photoURL, displayName: currentUser.displayName });
+        }
+      }
       setIsLoading(false);
-    }, 500);
+    };
 
-    return () => clearTimeout(timer);
-  }, []);
+    fetchUserData();
+  }, [currentUser]);
 
   const handleAvatarUpdate = (newAvatarUrl) => {
-    setCurrentUser(prev => ({
+    setUserData(prev => ({
       ...prev,
-      avatar: newAvatarUrl
+      photoURL: newAvatarUrl
     }));
   };
 
   const handleNameUpdate = (newName) => {
-    setCurrentUser(prev => ({
+    setUserData(prev => ({
       ...prev,
       displayName: newName
     }));
   };
 
   const handlePersonalInfoUpdate = (updatedInfo) => {
-    setCurrentUser(prev => ({
+    setUserData(prev => ({
       ...prev,
       ...updatedInfo
     }));
   };
 
   const handlePreferencesUpdate = (updatedPreferences) => {
-    setCurrentUser(prev => ({
+    setUserData(prev => ({
       ...prev,
       preferences: updatedPreferences
     }));
   };
 
   const handlePrivacyUpdate = (updatedPrivacy) => {
-    setCurrentUser(prev => ({
+    setUserData(prev => ({
       ...prev,
       privacySettings: updatedPrivacy
     }));
   };
 
-  const handleDeleteAccount = () => {
-    // Handle account deletion
-    localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
-    sessionStorage.clear();
-    navigate('/authentication');
+  const handleDeleteAccount = async () => {
+    // For now sign the user out and route to login. Account deletion can be added later.
+    try {
+      await signOut(auth);
+    } catch {}
+    navigate('/login', { replace: true });
   };
 
-  const handleLogout = () => {
-    // Handle logout
-    localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
-    sessionStorage.clear();
-    navigate('/authentication');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch {}
+    navigate('/login', { replace: true });
   };
 
   const handleNavigation = (path) => {
@@ -126,13 +100,12 @@ const UserProfile = () => {
     );
   }
 
+  if (!userData) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      {/* Top Navigation */}
-      <TopNavigation 
-        currentUser={currentUser}
-        onNavigate={handleNavigation}
-      />
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 pb-20 md:pb-6 max-w-4xl">
         <div className="space-y-6">
@@ -148,26 +121,26 @@ const UserProfile = () => {
 
           {/* Profile Header */}
           <ProfileHeader
-            user={currentUser}
+            user={userData}
             onAvatarUpdate={handleAvatarUpdate}
             onNameUpdate={handleNameUpdate}
           />
 
           {/* Personal Information */}
           <PersonalInfoSection
-            user={currentUser}
+            user={userData}
             onUpdate={handlePersonalInfoUpdate}
           />
 
           {/* Wellness Preferences */}
           <WellnessPreferences
-            preferences={currentUser?.preferences}
+            preferences={userData?.preferences}
             onUpdate={handlePreferencesUpdate}
           />
 
           {/* Privacy Controls */}
           <PrivacyControls
-            privacySettings={currentUser?.privacySettings}
+            privacySettings={userData?.privacySettings}
             onUpdate={handlePrivacyUpdate}
             onDeleteAccount={handleDeleteAccount}
           />
@@ -178,8 +151,6 @@ const UserProfile = () => {
           />
         </div>
       </main>
-      {/* Bottom Navigation */}
-      <BottomTabNavigation onNavigate={handleNavigation} />
       {/* Chat Widget */}
       <ChatTransition onNavigate={handleNavigation} onClose={() => {}} />
     </div>

@@ -27,7 +27,7 @@ const SplashScreen = () => {
       if (isAuthenticated) {
         navigate('/main-dashboard', { replace: true });
       } else {
-        navigate('/authentication', { replace: true });
+        navigate('/login', { replace: true });
       }
     }, 500);
   };

@@ -8,7 +8,8 @@ const ChatTransition = ({
   onClose, 
   onNavigate, 
   preserveDashboardState = true,
-  className = '' 
+  className = '',
+  showWidget = true
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -149,12 +150,12 @@ const ChatTransition = ({
     );
   };
 
-  // Return appropriate component based on usage context
+  // Full-screen chat header
   if (location?.pathname === '/mint-chat-full-screen') {
     return <ChatHeader onBack={handleCloseChat} className={className} />;
   }
 
-  // For desktop modal usage
+  // Desktop modal variant
   if (isOpen) {
     return (
       <DesktopChatModal isVisible={isOpen} onClose={onClose}>
@@ -169,8 +170,8 @@ const ChatTransition = ({
     );
   }
 
-  // Default: Return chat widget trigger
-  return <ChatWidget onClick={handleOpenChat} className={className} />;
+  // Default: return floating chat widget only when explicitly disabled
+  return showWidget ? <ChatWidget onClick={handleOpenChat} className={className} /> : null;
 };
 
 export default ChatTransition;

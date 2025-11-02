@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
+import { auth } from '../../firebase.js';
+import { signOut } from 'firebase/auth';
 
 const TopNavigation = ({ currentUser, onNavigate, className = '' }) => {
   const navigate = useNavigate();
@@ -46,13 +48,19 @@ const TopNavigation = ({ currentUser, onNavigate, className = '' }) => {
     setShowUserMenu(!showUserMenu);
   };
 
-  const handleLogout = () => {
-    // Handle logout logic here
-    navigate('/authentication');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch {}
+    navigate('/login', { replace: true });
     setShowUserMenu(false);
   };
 
   const isActive = (path) => location?.pathname === path;
+
+  const userName = currentUser?.displayName || currentUser?.name || currentUser?.email || 'User';
+  const userAvatar = currentUser?.photoURL || currentUser?.avatar || '';
+  const userInitial = (currentUser?.email || currentUser?.displayName || currentUser?.name || 'U')?.charAt(0)?.toUpperCase();
 
   return (
     <header className={`sticky top-0 z-100 bg-background/80 backdrop-blur-xl border-b border-border ${className}`}>
@@ -133,15 +141,15 @@ const TopNavigation = ({ currentUser, onNavigate, className = '' }) => {
                 onClick={handleUserMenuToggle}
                 className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted transition-spring group"
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-accent to-secondary rounded-full flex items-center justify-center shadow-neumorphic-sm">
-                  <Icon 
-                    name="User" 
-                    size={16} 
-                    className="text-accent-foreground"
-                  />
-                </div>
+                {userAvatar ? (
+                  <img src={userAvatar} alt={userName} className="w-8 h-8 rounded-full object-cover shadow-neumorphic-sm" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary to-accent text-white flex items-center justify-center shadow-neumorphic-sm text-sm font-heading">
+                    {userInitial}
+                  </div>
+                )}
                 <span className="hidden lg:block text-sm font-body font-medium text-foreground">
-                  {currentUser?.name || 'User'}
+                  {userName}
                 </span>
                 <Icon 
                   name="ChevronDown" 
@@ -180,7 +188,7 @@ const TopNavigation = ({ currentUser, onNavigate, className = '' }) => {
           ) : (
             <Button
               variant="outline"
-              onClick={() => handleNavigation('/authentication')}
+              onClick={() => handleNavigation('/login')}
               iconName="LogIn"
               iconPosition="left"
               iconSize={16}

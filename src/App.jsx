@@ -1,13 +1,12 @@
 import React from "react";
 import Routes from "./Routes";
-import QuickChatWidget from "./components/ui/QuickChatWidget";
+import { AuthProvider } from "./context/AuthContext";
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <Routes />
-      <QuickChatWidget onOpenFull={() => window.location.assign('/mint-chat-full-screen')} />
-    </>
+    </AuthProvider>
   );
 }
 

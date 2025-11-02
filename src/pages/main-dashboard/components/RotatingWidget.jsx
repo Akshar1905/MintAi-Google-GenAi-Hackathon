@@ -1,65 +1,81 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Icon from '../../../components/AppIcon';
-import Image from '../../../components/AppImage';
 import Button from '../../../components/ui/Button';
+import PhotoCaptionWidget from '../../../components/widgets/PhotoCaptionWidget';
+import MusicRecommendationWidget from '../../../components/widgets/MusicRecommendationWidget';
+import MotivationalQuoteWidget from '../../../components/widgets/MotivationalQuoteWidget';
+import MemeUpliftWidget from '../../../components/widgets/MemeUpliftWidget';
+import ImageGenerationWidget from '../../../components/widgets/ImageGenerationWidget';
+import TapToUpliftWidget from '../../../components/widgets/TapToUpliftWidget';
+import MintChatWidget from '../../../components/widgets/MintChatWidget';
+import DailyWellnessSummaryWidget from '../../../components/widgets/DailyWellnessSummaryWidget';
 
-const RotatingWidget = ({ isPaused, onPause, onResume, className = '' }) => {
+const RotatingWidget = ({ isPaused, onPause, onResume, className = '', chatHistory = null, currentMood = null }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const timerRef = useRef(null);
   const intervalRef = useRef(null);
 
-  // Mock data for widgets
+  // Widget definitions with actual components
   const widgets = [
     {
-      id: 'photo',
-      type: 'photo',
-      title: 'Daily Inspiration',
-      data: {
-        imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-        caption: `Take a moment to breathe and appreciate the beauty around you. \nEvery sunrise brings new possibilities and hope for a brighter day.`,
-        author: 'MintAi Wellness'
-      }
+      id: 'photo-caption',
+      type: 'photo-caption',
+      title: 'Photo + Auto Caption',
+      component: PhotoCaptionWidget,
+      props: {},
     },
     {
       id: 'music',
       type: 'music',
-      title: 'Mood Booster',
-      data: {
-        songTitle: 'Peaceful Morning',
-        artist: 'Calm Sounds',
-        thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-        duration: '3:45',
-        genre: 'Ambient'
-      }
+      title: 'YouTube Music',
+      component: MusicRecommendationWidget,
+      props: { chatHistory },
     },
     {
-      id: 'chat',
-      type: 'chat',
-      title: 'MintChat',
-      data: {
-        lastMessage: `Hi there! I'm here to support your wellness journey. \nHow are you feeling today?`,
-        unreadCount: 2,
-        isOnline: true
-      }
+      id: 'quote',
+      type: 'quote',
+      title: 'Daily Wisdom',
+      component: MotivationalQuoteWidget,
+      props: { mood: currentMood },
     },
     {
-      id: 'quote',type: 'quote',title: 'Daily Wisdom',
-      data: {
-        text: `The only way to do great work is to love what you do. \nStay passionate, stay curious, and never stop growing.`,
-        author: 'Steve Jobs',category: 'Motivation'
-      }
+      id: 'meme',
+      type: 'meme',
+      title: 'Remember to Laugh',
+      component: MemeUpliftWidget,
+      props: {},
     },
     {
-      id: 'animation',type: 'animation',title: 'Wellness Buddy',
-      data: {
-        message: 'You\'re doing amazing!',
-        mood: 'happy',
-        encouragement: 'Keep up the great work on your wellness journey!'
-      }
-    }
+      id: 'image-gen',
+      type: 'image-gen',
+      title: 'AI Visual Therapy',
+      component: ImageGenerationWidget,
+      props: { mood: currentMood, chatHistory },
+    },
+    {
+      id: 'tap-uplift',
+      type: 'tap-uplift',
+      title: 'Tap to Uplift',
+      component: TapToUpliftWidget,
+      props: {},
+    },
+    {
+      id: 'mint-chat',
+      type: 'mint-chat',
+      title: 'MintChat AI',
+      component: MintChatWidget,
+      props: {},
+    },
+    {
+      id: 'wellness-summary',
+      type: 'wellness-summary',
+      title: 'Daily Wellness Summary',
+      component: DailyWellnessSummaryWidget,
+      props: {},
+    },
   ];
 
   // Auto-rotation logic
@@ -125,187 +141,10 @@ const RotatingWidget = ({ isPaused, onPause, onResume, className = '' }) => {
   };
 
   const renderWidget = (widget) => {
-    switch (widget?.type) {
-      case 'photo':
-        return (
-          <div className="w-full h-full flex flex-col">
-            <div className="flex-1 relative overflow-hidden rounded-lg">
-              <Image
-                src={widget?.data?.imageUrl}
-                alt="Daily inspiration"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <p className="text-sm font-body leading-relaxed whitespace-pre-line">
-                  {widget?.data?.caption}
-                </p>
-                <p className="text-xs font-caption opacity-80 mt-2">
-                  — {widget?.data?.author}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center justify-center space-x-4 mt-4">
-              <Button variant="ghost" size="icon">
-                <Icon name="RefreshCw" size={16} />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Icon name="Share2" size={16} />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Icon name="Download" size={16} />
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 'music':
-        return (
-          <div className="w-full h-full flex flex-col items-center justify-center space-y-6">
-            <div className="w-32 h-32 rounded-full overflow-hidden shadow-neumorphic-md">
-              <Image
-                src={widget?.data?.thumbnail}
-                alt={widget?.data?.songTitle}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg font-heading font-semibold text-foreground">
-                {widget?.data?.songTitle}
-              </h3>
-              <p className="text-sm font-body text-muted-foreground">
-                {widget?.data?.artist}
-              </p>
-              <p className="text-xs font-caption text-muted-foreground mt-1">
-                {widget?.data?.genre} • {widget?.data?.duration}
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
-                <Icon name="SkipBack" size={20} />
-              </Button>
-              <Button variant="default" size="icon" className="w-12 h-12">
-                <Icon name="Play" size={24} />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Icon name="SkipForward" size={20} />
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 'chat':
-        return (
-          <div className="w-full h-full flex flex-col items-center justify-center space-y-6">
-            <div className="relative">
-              <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center shadow-neumorphic-md">
-                <Icon name="Bot" size={32} className="text-primary-foreground" />
-              </div>
-              {widget?.data?.isOnline && (
-                <div className="absolute -top-1 -right-1 w-6 h-6 bg-success rounded-full border-2 border-background flex items-center justify-center">
-                  <div className="w-2 h-2 bg-success-foreground rounded-full animate-pulse" />
-                </div>
-              )}
-              {widget?.data?.unreadCount > 0 && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
-                  <span className="text-xs font-bold text-accent-foreground">
-                    {widget?.data?.unreadCount}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="text-center max-w-xs">
-              <h3 className="text-lg font-heading font-semibold text-foreground mb-2">
-                MintChat
-              </h3>
-              <p className="text-sm font-body text-muted-foreground leading-relaxed whitespace-pre-line">
-                {widget?.data?.lastMessage}
-              </p>
-            </div>
-            <Button variant="default" className="px-6">
-              Start Chatting
-            </Button>
-          </div>
-        );
-
-      case 'quote':
-        return (
-          <div className="w-full h-full flex flex-col items-center justify-center space-y-6 text-center">
-            <div className="relative">
-              <Icon name="Quote" size={48} className="text-primary opacity-20" />
-            </div>
-            <div className="max-w-md">
-              <p className="text-lg font-body text-foreground leading-relaxed whitespace-pre-line mb-4">
-                {widget?.data?.text}
-              </p>
-              <p className="text-sm font-caption text-muted-foreground">
-                — {widget?.data?.author}
-              </p>
-              <span className="inline-block px-3 py-1 bg-muted rounded-full text-xs font-caption text-muted-foreground mt-2">
-                {widget?.data?.category}
-              </span>
-            </div>
-            <Button variant="outline" iconName="Share2" iconPosition="left">
-              Share Quote
-            </Button>
-          </div>
-        );
-
-      case 'animation':
-        return (
-          <div className="w-full h-full flex flex-col items-center justify-center space-y-6">
-            <motion.div
-              className="w-24 h-24 bg-accent rounded-full flex items-center justify-center shadow-neumorphic-lg cursor-pointer"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              animate={{ 
-                y: [0, -10, 0],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              <Icon name="Heart" size={32} className="text-accent-foreground" />
-            </motion.div>
-            <div className="text-center">
-              <h3 className="text-xl font-heading font-semibold text-foreground mb-2">
-                {widget?.data?.message}
-              </h3>
-              <p className="text-sm font-body text-muted-foreground max-w-xs">
-                {widget?.data?.encouragement}
-              </p>
-            </div>
-            <motion.div
-              className="flex space-x-2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              {[...Array(3)]?.map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-2 h-2 bg-primary rounded-full"
-                  animate={{
-                    scale: [1, 1.5, 1],
-                    opacity: [0.5, 1, 0.5]
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    delay: i * 0.2
-                  }}
-                />
-              ))}
-            </motion.div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+    if (!widget || !widget.component) return null;
+    
+    const WidgetComponent = widget.component;
+    return <WidgetComponent {...widget.props} />;
   };
 
   return (

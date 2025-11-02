@@ -31,9 +31,26 @@ const QuickChatWidget = ({ onOpenFull = () => {} }) => {
     setInput('');
     setLoading(true);
     try {
+      // Build conversation history from recent messages (last 6)
+      const recentMessages = messages.slice(-6);
+      const conversationHistory = recentMessages
+        .filter((msg) => msg.content && msg.content.trim())
+        .map((msg) => ({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.content }],
+        }));
+
+      // System instruction for wellness-focused responses
+      const systemInstruction = `You are MintChat, a compassionate mental wellness companion. Provide warm, empathetic, and supportive responses. Keep replies concise (1-2 sentences for quick chat widget).`;
+
       let reply = null;
       try {
-        reply = await generateGeminiResponse(content);
+        reply = await generateGeminiResponse(content, {
+          conversationHistory: conversationHistory,
+          systemInstruction: systemInstruction,
+          temperature: 0.8,
+          maxOutputTokens: 256,
+        });
       } catch (_) {
         // ignore, will fallback
       }
